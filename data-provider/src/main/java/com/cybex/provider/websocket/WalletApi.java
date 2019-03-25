@@ -1,19 +1,18 @@
 package com.cybex.provider.websocket;
 
 
-import android.content.Context;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.cybex.provider.constant.ErrorCode;
-import com.cybex.provider.crypto.Sha256Object;
-import com.cybex.provider.exception.NetworkStatusException;
 import com.cybex.provider.crypto.Aes;
+import com.cybex.provider.crypto.Sha256Object;
 import com.cybex.provider.crypto.Sha512Object;
+import com.cybex.provider.exception.NetworkStatusException;
 import com.cybex.provider.fc.io.BaseEncoder;
 import com.cybex.provider.fc.io.DataStreamEncoder;
 import com.cybex.provider.fc.io.DataStreamSizeEncoder;
 import com.cybex.provider.fc.io.RawType;
-import com.cybex.provider.graphene.chain.AccountHistoryObject;
 import com.cybex.provider.graphene.chain.AccountObject;
 import com.cybex.provider.graphene.chain.Asset;
 import com.cybex.provider.graphene.chain.AssetObject;
@@ -28,19 +27,20 @@ import com.cybex.provider.graphene.chain.GlobalConfigObject;
 import com.cybex.provider.graphene.chain.LimitOrder;
 import com.cybex.provider.graphene.chain.LimitOrderObject;
 import com.cybex.provider.graphene.chain.LockAssetObject;
+import com.cybex.provider.graphene.chain.MarketTicker;
 import com.cybex.provider.graphene.chain.MemoData;
 import com.cybex.provider.graphene.chain.ObjectId;
 import com.cybex.provider.graphene.chain.Operations;
 import com.cybex.provider.graphene.chain.PrivateKey;
 import com.cybex.provider.graphene.chain.SignedTransaction;
 import com.cybex.provider.graphene.chain.Types;
-import com.cybex.provider.graphene.chain.MarketTicker;
 import com.cybex.provider.utils.MyUtils;
 import com.google.common.primitives.UnsignedInteger;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+
+import org.bitcoinj.store.MySQLFullPrunedBlockStore;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -63,7 +63,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,7 +98,6 @@ public class WalletApi {
         }
     }
 
-    DynamicGlobalPropertyObject mDynamicGlobalPropertyObject;
     private WebSocketClient mWebSocketClient = new WebSocketClient();
     private wallet_object mWalletObject;
     private boolean mbLogin = false;
@@ -107,7 +105,6 @@ public class WalletApi {
     private Map<String, Types.public_key_type> mMapAddress2Pub = new ConcurrentHashMap<>();
     private Types.private_key_type mMemoPrivateKey;
     private Sha512Object mCheckSum = new Sha512Object();
-    private Context mContext;
     static class plain_keys {
         Map<Types.public_key_type, String> keys;
         Sha512Object checksum;
@@ -160,10 +157,6 @@ public class WalletApi {
 
     public WalletApi() {
         mMemoPrivateKey = new Types.private_key_type(PrivateKey.from_seed("cybex-testactivecybextest123456"));
-    }
-
-    public WalletApi(Context context) {
-        mContext = context;
     }
 
     public void initialize() {
@@ -815,6 +808,14 @@ public class WalletApi {
         operation.offsetInteger = UnsignedInteger.valueOf(offset);
         Log.e("expiration", String.valueOf(calendar.getTime().getTime()));
         return operation;
+    }
+
+    Operations.gateway_login_operation getGatewayLoginOperation(String user, Date expiration) {
+        Operations.gateway_login_operation gateway_login_operation = new Operations.gateway_login_operation();
+        gateway_login_operation.expirationDate = expiration;
+        gateway_login_operation.expiration = String.valueOf(expiration.getTime());
+        gateway_login_operation.accountName = user;
+        return gateway_login_operation;
     }
 
     public Operations.balance_claim_operation getBalanceClaimOperation(long fee,
