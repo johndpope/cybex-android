@@ -29,7 +29,6 @@ import com.cybex.provider.graphene.chain.Operations;
 import com.cybex.provider.http.gateway.entity.Data;
 import com.cybex.provider.http.gateway.entity.GatewayNewAssetListResponse;
 import com.cybex.provider.utils.MyUtils;
-import com.cybex.provider.websocket.BitsharesWalletWraper;
 import com.cybexmobile.R;
 import com.cybexmobile.activity.gateway.GatewayActivity;
 import com.cybexmobile.activity.gateway.withdraw.WithdrawActivity;
